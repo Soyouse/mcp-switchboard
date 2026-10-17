@@ -55,4 +55,8 @@ test('GATE hooks : pre-commit (fuite), commit-msg (fuite du message), pre-push (
   expect(lire('pre-commit')).toContain('tools/fuite-gate.mjs');
   expect(lire('commit-msg')).toMatch(/tools\/fuite-gate\.mjs --message "\$1"/);
   expect(lire('pre-push')).toContain('npm run ci');
+  // ⚠️ Commite depuis Windows, un hook perd son bit executable : sous Linux/macOS git l'ignore EN SILENCE.
+  const modes = execFileSync('git', ['ls-files', '-s', '.githooks'], { cwd: RACINE, encoding: 'utf8' }).trim().split(/\r?\n/);
+  expect(modes.length).toBe(3);
+  for (const l of modes) expect(l, 'git update-index --chmod=+x').toMatch(/^100755 /);
 });
