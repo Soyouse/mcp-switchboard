@@ -34,4 +34,8 @@ Config : `%APPDATA%\mcp-switchboard\switchboard.json` (Windows) · `~/Library/Ap
 
 ## Développement
 
-`npm run ci` (toute la suite, ce que la CI lance sur les 3 OS) · `npm run test:pure` · mutation : `stryker run --mutate src/<fichier>.js` (6 modules purs, plancher 100 %).
+`npm run ci` (toute la suite, ce que la CI lance sur les 3 OS) · `npm run ci:clean-clone` (la même suite sur un clone vierge de `HEAD`, sans GitHub) · `npm run test:pure` · mutation : `stryker run --mutate <fichier>` (7 modules purs, plancher 100 %). Le catalogue des fichiers est `ARBORESCENCE.md`.
+
+**Juges du dépôt** (`tests/gates.test.js`, inclus dans `npm run ci`) : aucune donnée personnelle, le workflow n'appelle que `npm run ci`, chaque fichier de code est catalogué, aucune source n'est restée instrumentée par la mutation.
+
+**Hooks git**, activés par `npm install` : avant chaque commit, `tools/fuite-gate.mjs` juge les fichiers puis le message (e-mail, dossier personnel, adresse ou nom d'hôte Tailscale) ; avant chaque push, la suite complète. Chaque contributeur peut ajouter ses propres motifs interdits (son nom, ses machines) dans un fichier local jamais suivi : `~/.config/mcp-switchboard/fuites.txt`, une entrée par ligne, ou un autre chemin via `MCP_SWITCHBOARD_FUITES`.

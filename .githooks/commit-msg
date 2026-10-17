@@ -1,0 +1,3 @@
+#!/bin/sh
+# Le message de commit part aussi en public : meme juge que les fichiers.
+exec node tools/fuite-gate.mjs --message "$1"

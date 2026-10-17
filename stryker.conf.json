@@ -11,7 +11,8 @@
     "src/config-pure.js",
     "src/paths.js",
     "src/service-pure.js",
-    "src/bascule-pure.js"
+    "src/bascule-pure.js",
+    "tools/fuite-pure.js"
   ],
   "coverageAnalysis": "perTest",
   "incremental": true,
@@ -28,5 +29,5 @@
     "low": 100,
     "break": 100
   },
-  "_cliquet": "break=100 mesure le 17/10/2026 (6 modules purs, 100 % chacun, run cible par fichier). NE JAMAIS le baisser : un survivant se tue par un test ou se supprime a la source s il est equivalent."
+  "_cliquet": "break=100 mesure le 17/10/2026 (6 modules purs + tools/fuite-pure.js ajoute le meme jour, 100 % chacun, run cible par fichier). NE JAMAIS le baisser : un survivant se tue par un test ou se supprime a la source s il est equivalent."
 }

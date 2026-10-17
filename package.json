@@ -8,7 +8,10 @@
     "test": "vitest run",
     "test:pure": "vitest run --config vitest.pure.config.js",
     "test:mut": "stryker run",
-    "ci": "vitest run"
+    "ci": "vitest run",
+    "prepare": "git config core.hooksPath .githooks",
+    "ci:clean-clone": "node tools/ci-clean-clone.mjs",
+    "fuite": "node tools/fuite-gate.mjs"
   },
   "license": "MIT",
   "description": "Standard MCP local : chaque fenetre (Claude Code, Codex, Antigravity) obtient SON serveur MCP, allume seulement quand elle s en sert.",

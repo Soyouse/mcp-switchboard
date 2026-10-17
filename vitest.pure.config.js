@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['tests/session-pure.test.js', 'tests/bascule-pure.test.js', 'tests/souvenir-config-pure.test.js'],
+    include: ['tests/session-pure.test.js', 'tests/bascule-pure.test.js', 'tests/souvenir-config-pure.test.js', 'tests/fuite-pure.test.js'],
     testTimeout: 30000,
   },
 });

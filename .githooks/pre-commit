@@ -1,0 +1,3 @@
+#!/bin/sh
+# Depot PUBLIC : une fuite est irreversible. Seul hook BLOQUANT avec commit-msg (le dommage evite ne se rattrape pas).
+exec node tools/fuite-gate.mjs

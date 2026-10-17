@@ -10,7 +10,7 @@ const NOM = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 /**
  * Adresse d'ECOUTE admise. 🛑 Le standard lance des outils qui portent des secrets : l'adresse EST la
  * frontiere. Admis : boucle locale 127/8, ou une adresse PRIVEE (10/8, 172.16/12, 192.168/16) — cas de la
- * carte dediee Windows en /32 (10.87.87.1, carte de bouclage Microsoft KM-TEST) : sous Windows, libuv coupe la
+ * carte dediee Windows en /32 (10.20.30.1, carte de bouclage Microsoft KM-TEST) : sous Windows, libuv coupe la
  * retransmission du SYN vers 127/8 et une rafale PERD des connexions (mesure sur un poste Windows 11, 2026-09-03 :
  * 2 061 echecs / 14 777 sur 127.0.0.1 contre 128 / 15 712 sur la carte, tous dans la bascule).
  * Refuses : 0.0.0.0 (toutes les interfaces), Tailscale 100.64/10, publique, et tout ce qui n'est pas IPv4.

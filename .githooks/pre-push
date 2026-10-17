@@ -1,0 +1,3 @@
+#!/bin/sh
+# Depot PUBLIC : une suite rouge ne part jamais. La suite complete tient en ~20 s (mesure 17/10/2026).
+exec npm run ci

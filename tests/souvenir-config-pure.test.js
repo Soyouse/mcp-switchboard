@@ -75,7 +75,7 @@ test('identiques : ordre compris', () => {
 // ── config ──
 test('verdictConfig : forme valide normalisee', () => {
   expect(verdictConfig({ serveurs: { crm: { command: 'node' } } })).toEqual({ ok: true, config: { port: PORT_DEFAUT, hote: '127.0.0.1', serveurs: { crm: { command: 'node', args: [], env: {}, cwd: null } } } });
-  expect(verdictConfig({ port: 1, hote: '10.87.87.1', serveurs: { 'a.b-c_9': { command: 'x', args: ['1'], env: { K: 'v' }, cwd: 'C:/w', origine: {} } } }).config).toEqual({ port: 1, hote: '10.87.87.1', serveurs: { 'a.b-c_9': { command: 'x', args: ['1'], env: { K: 'v' }, cwd: 'C:/w' } } });
+  expect(verdictConfig({ port: 1, hote: '10.20.30.1', serveurs: { 'a.b-c_9': { command: 'x', args: ['1'], env: { K: 'v' }, cwd: 'C:/w', origine: {} } } }).config).toEqual({ port: 1, hote: '10.20.30.1', serveurs: { 'a.b-c_9': { command: 'x', args: ['1'], env: { K: 'v' }, cwd: 'C:/w' } } });
   expect(verdictConfig({ port: 65535, serveurs: {} }).ok).toBe(true);
 });
 
@@ -131,7 +131,7 @@ test('definitionLancable : chaque chaine developpee a sa place, refus propage', 
 });
 
 test('hoteAdmis : boucle locale et privees seulement (l adresse EST la frontiere)', () => {
-  for (const ok of ['127.0.0.1', '127.255.255.254', '10.87.87.1', '10.0.0.0', '172.16.0.1', '172.31.255.255', '192.168.1.10']) expect(hoteAdmis(ok), ok).toBe(true);
+  for (const ok of ['127.0.0.1', '127.255.255.254', '10.20.30.1', '10.0.0.0', '172.16.0.1', '172.31.255.255', '192.168.1.10']) expect(hoteAdmis(ok), ok).toBe(true);
   for (const ko of ['0.0.0.0', '100.64.0.1', '8.8.8.8', '172.15.0.1', '172.32.0.1', '192.167.1.1', '192.169.1.1', '11.0.0.1', '126.0.0.1', '128.0.0.1', '9.0.0.1', '256.0.0.1', '10.256.0.1', '10.0.256.1', '10.0.0.256', '10.0.0', 'localhost', '::1', ' 127.0.0.1', '127.0.0.1 ', '1270.0.0.1', '', null, undefined, 127, ['127.0.0.1'], { toString: () => '127.0.0.1' }, '11.20.0.1', '193.20.1.1', '193.168.1.1']) expect(hoteAdmis(ko), String(ko)).toBe(false);
 });
 

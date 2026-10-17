@@ -86,13 +86,13 @@ test('le jeton passe par la variable MCP_SWITCHBOARD_TOKEN (nom fige : les harna
 
 test('urlDe : adresse du standard (boucle locale par defaut, carte dediee si declaree)', () => {
   expect(urlDe(47800, 'crm')).toBe('http://127.0.0.1:47800/mcp/crm');
-  expect(urlDe(47800, 'crm', '10.87.87.1')).toBe('http://10.87.87.1:47800/mcp/crm');
+  expect(urlDe(47800, 'crm', '10.20.30.1')).toBe('http://10.20.30.1:47800/mcp/crm');
 });
 
 test('bascule et retour suivent l adresse DECLAREE du standard', () => {
-  const s = { port: 47800, hote: '10.87.87.1', serveurs: {} };
+  const s = { port: 47800, hote: '10.20.30.1', serveurs: {} };
   const b = planBascule(client(), s, ['crm']);
-  expect(b.client.mcpServers.crm.url).toBe('http://10.87.87.1:47800/mcp/crm');
+  expect(b.client.mcpServers.crm.url).toBe('http://10.20.30.1:47800/mcp/crm');
   expect(planRetour(b.client, b.standard, ['crm']).client).toEqual(client());
   expect(planRetour(b.client, { ...b.standard, hote: '127.0.0.1' }, ['crm']).ok, 'adresse changee depuis : refus nomme').toBe(false);
 });
