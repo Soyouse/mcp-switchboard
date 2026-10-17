@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "_comment": "Mutation des modules PURS uniquement (decision isolee de l'I/O). L'I/O (http, spawn, fichiers) est prouvee par tests/standard.test.js contre de vrais process, jamais par Stryker. break = cliquet : ne JAMAIS le baisser.",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vitest.pure.config.js"
+  },
+  "mutate": [
+    "src/session-pure.js",
+    "src/souvenir-pure.js",
+    "src/config-pure.js",
+    "src/paths.js",
+    "src/service-pure.js",
+    "src/bascule-pure.js"
+  ],
+  "coverageAnalysis": "perTest",
+  "incremental": true,
+  "incrementalFile": "reports/stryker-incremental.json",
+  "concurrency": 2,
+  "timeoutMS": 60000,
+  "reporters": [
+    "clear-text",
+    "progress",
+    "json"
+  ],
+  "thresholds": {
+    "high": 100,
+    "low": 100,
+    "break": 100
+  },
+  "_cliquet": "break=100 mesure le 17/10/2026 (6 modules purs, 100 % chacun, run cible par fichier). NE JAMAIS le baisser : un survivant se tue par un test ou se supprime a la source s il est equivalent."
+}

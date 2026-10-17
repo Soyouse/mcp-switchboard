@@ -1,0 +1,28 @@
+# CI = UNE commande locale (`npm run ci`) ; ce fichier ne porte AUCUNE logique, il l'appelle sur les 3 OS.
+# GitHub est un BONUS (preuve cross-OS) : tout se rejoue en local a l'identique.
+# ⚠️ QUOTA (depot PRIVE) : une minute macOS compte x10. macOS ne tourne donc qu'a la DEMANDE
+#    (workflow_dispatch) ; Linux + Windows a chaque push, et seulement si le code ou les tests bougent.
+name: ci
+on:
+  push:
+    branches: [master]
+    paths: ['src/**', 'bin/**', 'tests/**', 'package.json', 'package-lock.json', 'vitest*.js', '.github/workflows/ci.yml']
+  workflow_dispatch:
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ github.event_name == 'workflow_dispatch' && fromJSON('["ubuntu-latest","windows-latest","macos-latest"]') || fromJSON('["ubuntu-latest","windows-latest"]') }}
+    runs-on: ${{ matrix.os }}
+    concurrency:
+      group: ci-${{ github.ref }}-${{ matrix.os }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5 — épinglé 2026-10-17
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5 — épinglé 2026-10-17
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ci
