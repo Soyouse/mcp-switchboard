@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
 import fc from 'fast-check';
-import { planBascule, planRetour, urlDe, VARIABLE_JETON } from '../src/bascule-pure.js';
+import { planBascule, planRetour, poserAide, urlDe, VARIABLE_JETON } from '../src/bascule-pure.js';
 
 const client = () => ({ mcpServers: { crm: { type: 'stdio', command: 'node', args: ['C:/outils/crm/proxy.js'], env: { NODE_OPTIONS: '--max-semi-space-size=2' } }, nu: { command: 'python', args: ['x.py'] }, distant: { type: 'http', url: 'https://vps/mcp' } } });
 const standard = () => ({ port: 47800, serveurs: {} });
@@ -87,6 +87,28 @@ test('le jeton passe par la variable MCP_SWITCHBOARD_TOKEN (nom fige : les harna
 test('urlDe : adresse du standard (boucle locale par defaut, carte dediee si declaree)', () => {
   expect(urlDe(47800, 'crm')).toBe('http://127.0.0.1:47800/mcp/crm');
   expect(urlDe(47800, 'crm', '10.20.30.1')).toBe('http://10.20.30.1:47800/mcp/crm');
+});
+
+test('basculer avec une aide : headersHelper pose, en-tete statique garde ; le retour rend l entree d origine', () => {
+  const b = planBascule(client(), standard(), ['crm'], 'node "/x/entete-jeton.js"');
+  expect(b.client.mcpServers.crm).toEqual({ type: 'http', url: 'http://127.0.0.1:47800/mcp/crm', headers: { Authorization: 'Bearer ${MCP_SWITCHBOARD_TOKEN}' }, headersHelper: 'node "/x/entete-jeton.js"' });
+  expect(planRetour(b.client, b.standard, ['crm']).client).toEqual(client());
+  expect('headersHelper' in planBascule(client(), standard(), ['crm'], '').client.mcpServers.crm, 'aide vide : rien').toBe(false);
+});
+
+test('poserAide : seulement les entrees du standard, idempotent, sans toucher l entree recue', () => {
+  const s = { port: 47800, hote: '10.20.30.1', serveurs: {} };
+  const b = planBascule(client(), s, ['crm', 'nu']);
+  const avant = structuredClone(b.client);
+  const p = poserAide(b.client, s, 'A');
+  expect(p.poses).toEqual(['crm', 'nu']);
+  expect(p.client.mcpServers.crm.headersHelper).toBe('A');
+  expect(p.client.mcpServers.distant, 'adresse d autrui intacte').toEqual(client().mcpServers.distant);
+  expect(b.client, 'copie').toEqual(avant);
+  expect(poserAide(p.client, s, 'A').poses, 'rejoue : rien').toEqual([]);
+  expect(poserAide(p.client, s, 'B').poses, 'aide changee : reposee').toEqual(['crm', 'nu']);
+  expect(poserAide({}, s, 'A')).toEqual({ client: {}, poses: [] });
+  expect(poserAide({ mcpServers: { crm: null } }, s, 'A').poses).toEqual([]);
 });
 
 test('bascule et retour suivent l adresse DECLAREE du standard', () => {

@@ -5,6 +5,7 @@
 //                        prouve que chaque outil rend la meme liste qu'en direct ; sinon retour automatique
 //   revenir <nom...>     remet ces entrees en stdio, mot pour mot comme avant
 //   etat                 sessions ouvertes et serveurs allumes, par outil
+//   poser-aide           pose `headersHelper` (jeton lu dans le fichier, sans variable) sur les entrees du standard
 // Apres basculer/revenir : la synchro des harnais (Codex, Antigravity) se relance si elle existe.
 import fs from 'node:fs';
 import os from 'node:os';
@@ -13,7 +14,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { emplacements } from '../src/paths.js';
 import { planService } from '../src/service-pure.js';
-import { planBascule, planRetour, VARIABLE_JETON } from '../src/bascule-pure.js';
+import { planBascule, planRetour, poserAide, VARIABLE_JETON } from '../src/bascule-pure.js';
 import { PORT_DEFAUT, HOTE_DEFAUT } from '../src/config-pure.js';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -24,6 +25,18 @@ const MAX_SAUVEGARDES = 10;
 const lireJson = (f, defaut) => { try { return JSON.parse(fs.readFileSync(f, 'utf8').replace(/^﻿/, '')); } catch (e) { if (defaut !== undefined && e?.code === 'ENOENT') return defaut; throw new Error(`${f} illisible : ${e?.code || e?.message}`); } };
 const ecrireJson = (f, v) => { fs.mkdirSync(path.dirname(f), { recursive: true }); const tmp = `${f}.${process.pid}.tmp`; fs.writeFileSync(tmp, JSON.stringify(v, null, 2) + '\n'); fs.renameSync(tmp, f); };
 const jeton = () => fs.readFileSync(path.join(etat, 'jeton'), 'utf8').trim();
+// `headersHelper` des entrees du client : Claude Code le lance dans un shell (bash ou cmd selon l'OS) ⇒ chemin
+// entre guillemets, barres obliques (comprises par les deux). `node` vient du PATH : sous Windows il est dans le
+// PATH MACHINE (installateur officiel), que Windows lit meme quand les variables de l'utilisateur sont perdues.
+const AIDE = `node "${path.join(RACINE, 'bin', 'entete-jeton.js').replace(/\\/g, '/')}"`;
+
+/** Pose l'aide sur toutes les entrees qui pointent vers le standard (idempotent, sauvegarde si changement). */
+function poserAideClient() {
+  if (!fs.existsSync(FICHIER_CLIENT) || !fs.existsSync(fichierConfig)) return [];
+  const { client, poses } = poserAide(lireJson(FICHIER_CLIENT), lireJson(fichierConfig), AIDE);
+  if (poses.length) { sauvegarder(); ecrireJson(FICHIER_CLIENT, client); }
+  return poses;
+}
 
 /** Sauvegarde horodatee de ~/.mcp.json — L'ESPACE SE DECLARE : les MAX_SAUVEGARDES plus recentes seulement. */
 function sauvegarder() {
@@ -116,13 +129,20 @@ async function main([cmd, ...args]) {
     const sante = await attendreReponse(cfgFin.port ?? PORT_DEFAUT, cfgFin.hote || HOTE_DEFAUT);
     if (!sante) throw new Error(`le service est pose mais le standard NE REPOND PAS sur ${cfgFin.hote || HOTE_DEFAUT}:${cfgFin.port ?? PORT_DEFAUT} — lire ${path.join(etat, 'switchboard.log')}`);
     console.log(`service installe, demarre et VERIFIE (${sante.sessions} session(s), ${fichier})`);
+    const poses = poserAideClient();
+    if (poses.length) console.log(`jeton lu par fichier (headersHelper) pose sur : ${poses.join(', ')}`);
+    return;
+  }
+  if (cmd === 'poser-aide') {
+    const poses = poserAideClient();
+    console.log(poses.length ? `headersHelper pose sur : ${poses.join(', ')}` : 'headersHelper deja pose partout');
     return;
   }
   if (cmd === 'basculer' || cmd === 'revenir') {
     if (!args.length) throw new Error(`usage : mcp-switchboard ${cmd} <nom...>`);
     const client = lireJson(FICHIER_CLIENT);
     const standard = lireJson(fichierConfig, { port: PORT_DEFAUT, serveurs: {} });
-    const plan = (cmd === 'basculer' ? planBascule : planRetour)(client, standard, args);
+    const plan = cmd === 'basculer' ? planBascule(client, standard, args, AIDE) : planRetour(client, standard, args);
     if (!plan.ok) throw new Error(plan.raison);
     const sauvegarde = sauvegarder();
     // ORDRE : le standard connait le serveur AVANT que le client ne pointe dessus (et l'inverse au retour).

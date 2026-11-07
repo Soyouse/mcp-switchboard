@@ -18,7 +18,8 @@ Une ligne par fichier de code. `tests/gates.test.js` rougit si un fichier de `sr
 - `src/journal.js` : journal borné.
 
 ## Commandes
-- `bin/mcp-switchboard.js` : `installer`, `basculer`, `revenir`, `etat`.
+- `bin/mcp-switchboard.js` : `installer`, `basculer`, `revenir`, `etat`, `poser-aide`.
+- `bin/entete-jeton.js` : `headersHelper` de Claude Code, jeton lu dans le fichier du standard (aucune variable).
 - `bin/sans-fenetre.vbs` : lanceur Windows sans fenêtre, propage le code de sortie.
 
 ## Outils du dépôt

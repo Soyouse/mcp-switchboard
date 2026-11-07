@@ -20,7 +20,7 @@ export const urlDe = (port, nom, hote = '127.0.0.1') => `http://${hote}:${port}/
  * @param {string[]} noms
  * @returns {{ok:true, client:object, standard:object} | {ok:false, raison:string}}
  */
-export function planBascule(client, standard, noms) {
+export function planBascule(client, standard, noms, aide) {
   const c = structuredClone(client);
   const s = structuredClone(standard);
   for (const nom of noms) {
@@ -31,9 +31,31 @@ export function planBascule(client, standard, noms) {
     if (s.serveurs[nom]) return { ok: false, raison: `"${nom}" existe deja dans le standard` };
     // `origine` = l'entree du client MOT POUR MOT : c'est elle que le retour remet (inverse EXACT).
     s.serveurs[nom] = { command: e.command, args: e.args || [], env: e.env || {}, ...(e.cwd ? { cwd: e.cwd } : {}), origine: e };
-    c.mcpServers[nom] = { type: 'http', url: urlDe(s.port, nom, s.hote), headers: { Authorization: `Bearer \${${nomVariableJeton()}}` } };
+    c.mcpServers[nom] = { type: 'http', url: urlDe(s.port, nom, s.hote), headers: { Authorization: `Bearer \${${nomVariableJeton()}}` }, ...(aide ? { headersHelper: aide } : {}) };
   }
   return { ok: true, client: c, standard: s };
+}
+
+/**
+ * Pose `headersHelper` sur CHAQUE entree du client qui pointe vers le standard (idempotent).
+ * POURQUOI (mesure 07/11/2026) : un harnais lance depuis un environnement Windows qui a perdu les variables de
+ * l'utilisateur (PATH > 2 047 caracteres, KB 2685893) n'a pas `MCP_SWITCHBOARD_TOKEN` ; Claude Code envoie alors
+ * `${MCP_SWITCHBOARD_TOKEN}` tel quel (doc officielle) et TOUS les connecteurs rendent 401. `headersHelper`
+ * (doc code.claude.com/docs/en/mcp, lue le 07/11/2026) est lance a chaque connexion, relance apres un 401, et
+ * ses en-tetes remplacent les statiques du meme nom : il lit le jeton dans le FICHIER du standard, sans variable.
+ * L'en-tete statique reste pour les harnais qui ignorent `headersHelper` (Codex, Antigravity).
+ * @returns {{client:object, poses:string[]}}
+ */
+export function poserAide(client, standard, aide) {
+  const c = structuredClone(client);
+  const poses = [];
+  for (const [nom, e] of Object.entries(c.mcpServers || {})) {
+    if (e?.url === urlDe(standard.port, nom, standard.hote) && e.headersHelper !== aide) {
+      e.headersHelper = aide;
+      poses.push(nom);
+    }
+  }
+  return { client: c, poses };
 }
 
 /**
